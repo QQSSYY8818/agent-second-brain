@@ -1,0 +1,38 @@
+{
+  "env": {
+    "PYTHONUTF8": "1"
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "C:\\path\\to\\agent-second-brain\\engine\\brain_inject.py"
+            ],
+            "timeout": 20,
+            "statusMessage": "第二大脑·预检索注入"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python",
+            "args": [
+              "C:\\path\\to\\agent-second-brain\\engine\\transcript_harvest.py"
+            ],
+            "timeout": 60,
+            "statusMessage": "第二大脑·收割",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

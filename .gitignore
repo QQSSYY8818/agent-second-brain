@@ -1,0 +1,11 @@
+__pycache__/
+_运行日志/
+_入脑暂存/
+_大脑审计/
+vault/_索引/*
+!vault/_索引/.gitkeep
+vault/_inbox/*
+!vault/_inbox/.gitkeep
+vault/_现况总览.md
+vault/_回收站/*
+!vault/_回收站/.gitkeep
