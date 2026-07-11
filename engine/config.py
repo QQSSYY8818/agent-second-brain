@@ -17,8 +17,14 @@
 import os
 from pathlib import Path
 
-# 大脑根：默认=本文件上级目录（即仓库根）
-BRAIN_ROOT = Path(os.environ.get("BRAIN_ROOT", Path(__file__).resolve().parents[1]))
+# 大脑根解析顺序：BRAIN_ROOT 环境变量 > 当前目录含 vault/（pip 安装后 asb 的工作模式）> 本文件上级（git clone 模式）
+_env_root = os.environ.get("BRAIN_ROOT")
+if _env_root:
+    BRAIN_ROOT = Path(_env_root)
+elif (Path.cwd() / "vault").exists():
+    BRAIN_ROOT = Path.cwd()
+else:
+    BRAIN_ROOT = Path(__file__).resolve().parents[1]
 
 # 权威 vault —— 全系统唯一真相
 VAULT = Path(os.environ.get("BRAIN_VAULT", BRAIN_ROOT / "vault"))

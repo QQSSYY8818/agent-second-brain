@@ -2,6 +2,12 @@
 
 **[English](README.md)** | 简体中文
 
+[![PyPI](https://img.shields.io/pypi/v/agent-second-brain)](https://pypi.org/project/agent-second-brain/)
+[![Downloads](https://img.shields.io/pypi/dm/agent-second-brain)](https://pypi.org/project/agent-second-brain/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Dependencies](https://img.shields.io/badge/依赖-零-brightgreen)
+
 > **给 AI agent 装一个永不失忆的第二大脑。**
 > 文件型知识卡网络 + 分层检索路由 + Claude Code 钩子自动注入/收割。纯 Python 标准库，**零第三方依赖**，clone 即用。
 >
@@ -54,11 +60,25 @@
 
 ## 快速开始
 
+**方式 A —— pip（推荐）：**
+
+```bash
+pip install agent-second-brain
+# 国内加速：pip install -i https://mirrors.aliyun.com/pypi/simple/ agent-second-brain
+
+mkdir my-brain; cd my-brain
+asb init          # 脚手架出带 4 张演示卡的 vault
+asb lint --fix    # 首跑校正文件时间戳
+asb up            # 维护四连：lint → catalog → routemap → rings
+```
+
+**方式 B —— git clone：**
+
 ```bash
 git clone https://github.com/QQSSYY8818/agent-second-brain.git
 cd agent-second-brain
 
-# Windows 先设 UTF-8（编码坑，见 docs/hooks-setup.md）
+# Windows 先设 UTF-8（编码坑，见 docs/zh/hooks-setup.md）
 # PowerShell:  $env:PYTHONUTF8='1'
 
 python engine/vault_lint.py --fix   # 首跑：校正 clone 产生的文件时间戳
@@ -68,7 +88,7 @@ python engine/vault_routemap.py     # 生成第 0 跳路由地图
 python engine/vault_rings.py        # 生成三环注意力视图
 ```
 
-四条命令跑通 = 大脑骨架活了。接下来：
+全绿 = 大脑骨架活了。接下来：
 
 1. **接入 Claude Code**：把 `hooks/settings.example.json` 里的两个钩子合并进你的 `~/.claude/settings.json`（详见 [docs/zh/hooks-setup.md](docs/zh/hooks-setup.md)）；
 2. **长出第一批卡**：照 `vault/_模板/` 建卡，或用 `python engine/brain_intake.py <文件>` 让机械层先生成卡骨架+候选边提名单；
@@ -112,6 +132,10 @@ hooks/             settings.example.json（可直接合并的钩子片段）
 - **必须用 Claude Code 吗？** 不。钩子层是 Claude Code 专用的，但 vault+引擎是纯文件系统操作，任何能读文件的 agent（或人）都能用；Obsidian 可直接打开 vault 获得图谱视图。
 - **中文写的，英文项目能用吗？** 卡片内容语言不限；卡型/边型关键字目前是中文枚举（`概念-`/`支持::`），fork 后改 `vault_lint.py` 顶部的枚举表即可本地化。
 - **和 RAG 什么关系？** 互补。RAG 是"检索原文片段"，这里管理的是**判断层**——结论、决策、教训及其关联；向量检索只是本系统的兜底路，不是主干。
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=QQSSYY8818/agent-second-brain&type=Date)](https://star-history.com/#QQSSYY8818/agent-second-brain&Date)
 
 ## License
 

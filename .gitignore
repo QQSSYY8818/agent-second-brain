@@ -1,4 +1,7 @@
 __pycache__/
+dist/
+build/
+*.egg-info/
 _运行日志/
 _入脑暂存/
 _大脑审计/

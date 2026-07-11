@@ -2,6 +2,12 @@
 
 English | **[简体中文](README.zh-CN.md)**
 
+[![PyPI](https://img.shields.io/pypi/v/agent-second-brain)](https://pypi.org/project/agent-second-brain/)
+[![Downloads](https://img.shields.io/pypi/dm/agent-second-brain)](https://pypi.org/project/agent-second-brain/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Python](https://img.shields.io/badge/python-3.9%2B-blue)
+![Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
+
 > **Give your AI agent a second brain that never forgets.**
 > A file-based knowledge-card network + budget-capped retrieval routing + Claude Code hooks for automatic recall & harvest. Pure stdlib Python, **zero third-party dependencies**, works right after clone.
 
@@ -54,6 +60,19 @@ Edges are first-class citizens. Ten edge types (supports / conflicts / extends /
 
 ## Quick start
 
+**Option A — pip (recommended):**
+
+```bash
+pip install agent-second-brain
+
+mkdir my-brain && cd my-brain
+asb init          # scaffold a vault with 4 demo cards
+asb lint --fix    # first run: align file timestamps
+asb up            # the maintenance quadruple: lint → catalog → routemap → rings
+```
+
+**Option B — git clone:**
+
 ```bash
 git clone https://github.com/QQSSYY8818/agent-second-brain.git
 cd agent-second-brain
@@ -68,7 +87,7 @@ python engine/vault_routemap.py     # build the hop-0 route map
 python engine/vault_rings.py        # build the three-ring attention view
 ```
 
-Four commands pass = the skeleton is alive. Next:
+All green = the skeleton is alive. Next:
 
 1. **Wire up Claude Code**: merge the two hooks from `hooks/settings.example.json` into your `~/.claude/settings.json` (see [docs/en/hooks-setup.md](docs/en/hooks-setup.md));
 2. **Grow your first cards**: copy from `vault/_模板/` (templates), or run `python engine/brain_intake.py <file>` and let the mechanical layer draft a card skeleton + candidate edges for you to confirm;
@@ -112,6 +131,10 @@ None of this is invented from thin air. It synthesizes **A-MEM** (card = content
 - **Do I need Claude Code?** No. The hook layer is Claude Code-specific, but the vault + engine are plain file operations — any agent (or human) that can read files can use it; Obsidian opens the vault directly and gives you the graph view.
 - **The card keywords are Chinese — can I use this in an English project?** Card *content* can be in any language. Card-type and edge-type keywords are currently Chinese enums (`概念-`/`支持::`); to localize, fork and edit the enum tables at the top of `vault_lint.py`. An English keyword set is on the v2 roadmap.
 - **How does this relate to RAG?** Complementary. RAG retrieves source-text fragments; this system manages the **judgment layer** — conclusions, decisions, lessons, and their reasoned associations. Vector search is only the fallback path here, not the backbone.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=QQSSYY8818/agent-second-brain&type=Date)](https://star-history.com/#QQSSYY8818/agent-second-brain&Date)
 
 ## License
 

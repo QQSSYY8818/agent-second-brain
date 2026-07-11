@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-second-brain"
+version = "0.1.0"
+description = "A file-based second brain for AI agents: permanent memory, budget-capped retrieval, Claude Code hooks | 给 AI agent 装一个永不失忆的第二大脑"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "QQSSYY8818" }]
+requires-python = ">=3.9"
+keywords = ["second-brain", "ai-agents", "agent-memory", "claude-code", "pkm", "zettelkasten", "knowledge-management"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Text Processing :: Markup :: Markdown",
+]
+
+[project.urls]
+Homepage = "https://github.com/QQSSYY8818/agent-second-brain"
+Documentation = "https://github.com/QQSSYY8818/agent-second-brain/tree/main/docs"
+Issues = "https://github.com/QQSSYY8818/agent-second-brain/issues"
+
+[project.scripts]
+asb = "agent_second_brain.cli:main"
+
+[tool.setuptools]
+package-dir = { "agent_second_brain" = "engine" }
+packages = ["agent_second_brain"]
+
+[tool.setuptools.package-data]
+agent_second_brain = ["_scaffold/**/*"]
