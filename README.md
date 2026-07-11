@@ -8,6 +8,8 @@ English | **[简体中文](README.zh-CN.md)**
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Dependencies](https://img.shields.io/badge/dependencies-zero-brightgreen)
 
+![agent-second-brain](assets/brand.png)
+
 > **Give your AI agent a second brain that never forgets.**
 > A file-based knowledge-card network + budget-capped retrieval routing + Claude Code hooks for automatic recall & harvest. Pure stdlib Python, **zero third-party dependencies**, works right after clone.
 

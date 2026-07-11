@@ -8,6 +8,8 @@
 ![Python](https://img.shields.io/badge/python-3.9%2B-blue)
 ![Dependencies](https://img.shields.io/badge/依赖-零-brightgreen)
 
+![agent-second-brain](assets/brand.png)
+
 > **给 AI agent 装一个永不失忆的第二大脑。**
 > 文件型知识卡网络 + 分层检索路由 + Claude Code 钩子自动注入/收割。纯 Python 标准库，**零第三方依赖**，clone 即用。
 >
