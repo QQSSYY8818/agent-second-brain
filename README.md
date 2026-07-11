@@ -1,116 +1,118 @@
 # agent-second-brain
 
-> **给 AI agent 装一个永不失忆的第二大脑。**
-> 文件型知识卡网络 + 分层检索路由 + Claude Code 钩子自动注入/收割。纯 Python 标准库，**零第三方依赖**，clone 即用。
->
-> A file-based second brain for AI agents: a card network with typed edges, budget-capped retrieval routing, and Claude Code hooks for automatic recall & harvest. Pure stdlib Python, zero dependencies.
+English | **[简体中文](README.zh-CN.md)**
+
+> **Give your AI agent a second brain that never forgets.**
+> A file-based knowledge-card network + budget-capped retrieval routing + Claude Code hooks for automatic recall & harvest. Pure stdlib Python, **zero third-party dependencies**, works right after clone.
 
 ---
 
-## 为什么需要它：三个承诺
+## Why: three promises
 
-### 1. 永久性思维能力
+### 1. Permanent thinking capability
 
-会话会结束、上下文窗口会满、模型会换代——**卡片网络不会**。每个结论、决策、教训都固化成一张带 frontmatter 的 Markdown 卡，卡与卡之间用带理由的边连接。任何新会话开局，钩子自动把相关记忆注入上下文，agent 立刻"接上"过去所有的思考。知识只进化不丢失：**永不删除**，过时的卡走"降档"或"取代"（`取代者::` 边指向新结论），错误的历史也保留为可追溯的判断轨迹。
+Sessions end, context windows fill up, models get replaced — **the card network survives all of it**. Every conclusion, decision, and lesson is frozen into a Markdown card with frontmatter, and cards are wired together with *reasoned* edges. When a new session starts, a hook automatically injects the relevant memories into context, and the agent picks up exactly where all its past thinking left off. Knowledge only evolves, never disappears: **nothing is ever deleted** — outdated cards are demoted or superseded (a `取代者::`/superseded-by edge points to the new conclusion), and even wrong historical judgments are kept as a traceable record.
 
-### 2. token 经济学
+### 2. Token economics
 
-第二大脑不是把整个知识库塞进上下文——那是最贵也最笨的做法。这套系统的每一层都在省 token：
+A second brain is *not* "stuff the whole knowledge base into the context window" — that is the most expensive and dumbest possible design. Every layer here is built to save tokens:
 
-- **注入层**：每条用户消息只注入 top-4 相关卡的**一行描述**（词面+语义+使用频率三路加权，总分不过阈值宁可一张不注）；
-- **检索层**：硬预算路由——第 0 跳读一屏路由地图 → 定项目 → 顺边逐跳读卡，**全程 ≤8 次文件读取封顶**，而不是全库扫描；
-- **收割层**：会话结束钩子用纯正则从 transcript 提取结论候选和使用记录，**零 LLM token**；
-- **索引层**：目录/邻接表/向量库全部预计算成 jsonl，grep 一击定位，不需要让模型"想起来"。
+- **Injection layer**: for each user message, only the **one-line descriptions** of the top-4 relevant cards are injected (lexical + semantic + usage-frequency weighted; below the threshold, nothing gets injected at all);
+- **Retrieval layer**: hard-budget routing — hop 0 reads a one-screen route map → pick the project → follow edges card by card, **≤8 file reads total, hard cap** — never a full-library scan;
+- **Harvest layer**: an end-of-session hook extracts conclusion candidates and usage records from the transcript with pure regex — **zero LLM tokens**;
+- **Index layer**: catalog / adjacency list / vector store are all precomputed jsonl — one grep locates a card; the model never has to "try to remember".
 
-### 3. 关联性
+### 3. Associativity
 
-边是一等公民。十种边型（支持/冲突/延伸/类比/上位/用法/用材/同理/出处/引用），**每条边必须带一行理由**——理由是判断的缓存，下次不用重新想。关联性还有三个自动回路：
+Edges are first-class citizens. Ten edge types (supports / conflicts / extends / analogy / is-a / uses / …), and **every edge must carry a one-line reason** — the reason is a cached judgment, so you never have to re-derive it. Three automatic loops keep the network associative:
 
-- **上位轴 V 字跳**：实例卡 →（上位）→ 家族概念卡 →（反查）→ 其他领域的实例——跨项目联想的机械实现；
-- **Hebbian 权重**：每次真实调用让卡的 `used` 计数 +1，常用知识自动浮到检索入口第 0 跳；
-- **机械审计**：矛盾边、孤儿卡、上位环、层级倒挂——`brain_audit.py` 全库体检，网络健康可度量。
+- **The V-jump**: instance card → (is-a edge) → family concept card → (reverse lookup) → instances in *other* domains — cross-project association, mechanized;
+- **Hebbian weighting**: every real use bumps a card's `used` counter, so frequently-used knowledge floats up to hop 0 of retrieval;
+- **Mechanical audits**: contradictory edges, orphan cards, is-a cycles, hierarchy inversions — `brain_audit.py` gives the whole network a measurable health check.
 
 ---
 
-## 工作原理（一图流）
+## How it works (one diagram)
 
 ```
- 用户消息 ──► [UserPromptSubmit 钩子] brain_inject.py
-              词面 + 语义(可选Ollama) + used 三路加权 → top-4 卡描述注入上下文
-                     │
- agent 答题 ──► 需要深挖时按检索协议走：
-              路由地图(第0跳,一屏) → 枢纽现况(第1跳) → 顺边跳卡(≤2张/跳)
-              → V字跳跨项目 → 全程 ≤8 次读取封顶
-                     │
- 会话结束 ──► [Stop 钩子] transcript_harvest.py（零token正则）
-              结论候选 → vault/_inbox/   待人工分拣落卡
-              本轮读过的卡 → used+1      （Hebbian 回路闭环）
-                     │
- 维护三连 ──► vault_lint → vault_catalog → vault_routemap (+ vault_rings)
-              规范检查 → 目录/邻接表再生 → 路由地图刷新 → 三环注意力视图
+ user message ──► [UserPromptSubmit hook] brain_inject.py
+                  lexical + semantic(optional Ollama) + used, weighted → top-4 card
+                  descriptions injected into context
+                        │
+ agent answers ──► when it needs to dig deeper, it follows the retrieval protocol:
+                  route map (hop 0, one screen) → hub status (hop 1)
+                  → follow edges (≤2 cards/hop) → V-jump across projects
+                  → ≤8 file reads total, hard cap
+                        │
+ session ends ──► [Stop hook] transcript_harvest.py  (zero-token regex)
+                  conclusion candidates → vault/_inbox/   for human triage
+                  cards Read this session → used+1        (Hebbian loop closed)
+                        │
+ maintenance  ──► vault_lint → vault_catalog → vault_routemap (+ vault_rings)
+                  spec check → index regen → route map refresh → attention rings
 ```
 
-## 快速开始
+## Quick start
 
 ```bash
 git clone https://github.com/QQSSYY8818/agent-second-brain.git
 cd agent-second-brain
 
-# Windows 先设 UTF-8（编码坑，见 docs/hooks-setup.md）
+# On Windows set UTF-8 first (see docs/en/hooks-setup.md)
 # PowerShell:  $env:PYTHONUTF8='1'
 
-python engine/vault_lint.py --fix   # 首跑：校正 clone 产生的文件时间戳
-python engine/vault_lint.py         # 自带 4 张演示卡，应输出 issues=0
-python engine/vault_catalog.py      # 生成 卡片总目录 + 邻接表 + 热核
-python engine/vault_routemap.py     # 生成第 0 跳路由地图
-python engine/vault_rings.py        # 生成三环注意力视图
+python engine/vault_lint.py --fix   # first run: fix clone-time file timestamps
+python engine/vault_lint.py         # ships with 4 demo cards, should print issues=0
+python engine/vault_catalog.py      # build card catalog + adjacency list + hot core
+python engine/vault_routemap.py     # build the hop-0 route map
+python engine/vault_rings.py        # build the three-ring attention view
 ```
 
-四条命令跑通 = 大脑骨架活了。接下来：
+Four commands pass = the skeleton is alive. Next:
 
-1. **接入 Claude Code**：把 `hooks/settings.example.json` 里的两个钩子合并进你的 `~/.claude/settings.json`（详见 [docs/hooks-setup.md](docs/hooks-setup.md)）；
-2. **长出第一批卡**：照 `vault/_模板/` 建卡，或用 `python engine/brain_intake.py <文件>` 让机械层先生成卡骨架+候选边提名单；
-3. **可选语义检索**：本地装 [Ollama](https://ollama.com) + `bge-m3` 嵌入模型，跑 `python engine/vault_embed.py` 建向量库——注入器自动升级为词面+语义双路（没有 Ollama 也能跑，自动降级纯词面）。
+1. **Wire up Claude Code**: merge the two hooks from `hooks/settings.example.json` into your `~/.claude/settings.json` (see [docs/en/hooks-setup.md](docs/en/hooks-setup.md));
+2. **Grow your first cards**: copy from `vault/_模板/` (templates), or run `python engine/brain_intake.py <file>` and let the mechanical layer draft a card skeleton + candidate edges for you to confirm;
+3. **Optional semantic recall**: install [Ollama](https://ollama.com) + the `bge-m3` embedding model, run `python engine/vault_embed.py` — the injector automatically upgrades to lexical+semantic dual-path (and degrades gracefully without Ollama).
 
-## 仓库结构
+## Repository layout
 
 ```
-engine/            14 个引擎脚本（纯标准库）
-  config.py          路径唯一源（环境变量可覆盖，默认 clone 即用）
-  vault_lint.py      卡片规范检查 L1-L15（frontmatter/边型/理由/孤儿卡/时间戳）
-  vault_catalog.py   总目录+邻接表+现况总览+热核 生成器
-  vault_routemap.py  第 0 跳路由地图（度+3×used 承重排序）
-  vault_rings.py     三环注意力视图（显性入口/在网层/沉淀层）+ 辅助标 7 天自动过期
-  vault_touch.py     used+1 使用计数（Hebbian 回路的记账笔）
-  vault_embed.py     向量库生成（可选，需 Ollama+bge-m3）
-  vault_semantic_search.py  语义兜底检索
-  vault_patrol.py    月度巡检（lint→索引再生→陈旧度→零入边→枢纽时效）
-  brain_inject.py    UserPromptSubmit 钩子：三路加权注入 top-4
-  brain_intake.py    入脑管线：新文件/要点 → 卡骨架+候选边提名单
-  brain_audit.py     关联性全库审计（矛盾边/上位环/层级倒挂/星形卡）
-  transcript_harvest.py  Stop 钩子：零 token 收割结论+自动 touch
-  session_chunker.py 历史状态日志回填切块（存量记忆迁移用）
-vault/             卡片库（自带 4 张演示卡，lint 全绿）
-  卡片/  MOC/  登记/  _inbox/  _索引/  _模板/(11 张卡模板)  _回收站/
-  HOME.md  _热核.md  _待办.md  _检索失败日志.md
-docs/              四份设计文档
-  architecture.md        总体架构：双体大脑/入口金字塔/五个自动回路/三环视图
-  card-spec.md           卡片规格：frontmatter/14 类卡型/边十型/活性轴
-  retrieval-protocol.md  检索协议：≤8 次读取预算/题型路由/V 字跳/miss 升级
-  hooks-setup.md         Claude Code 接入：两钩子配置+Ollama 可选件+已知坑
-hooks/             settings.example.json（可直接合并的钩子片段）
+engine/            14 engine scripts (pure stdlib)
+  config.py          single source of truth for paths (env-var overridable)
+  vault_lint.py      card spec checks L1-L15 (frontmatter/edges/reasons/orphans/timestamps)
+  vault_catalog.py   catalog + adjacency list + status overview + hot core generator
+  vault_routemap.py  hop-0 route map (cards ranked by degree + 3×used)
+  vault_rings.py     three-ring attention view + 7-day auto-expiry of auxiliary marks
+  vault_touch.py     used+1 usage counter (the pen that closes the Hebbian loop)
+  vault_embed.py     vector store builder (optional, Ollama+bge-m3)
+  vault_semantic_search.py  semantic fallback search
+  vault_patrol.py    monthly patrol (lint → index regen → staleness → zero-inlink → hub freshness)
+  brain_inject.py    UserPromptSubmit hook: 3-way weighted top-4 injection
+  brain_intake.py    intake pipeline: new file/note → card skeleton + candidate edges
+  brain_audit.py     network health audit (contradictions/cycles/inversions/star cards)
+  transcript_harvest.py  Stop hook: zero-token harvest + auto-touch
+  session_chunker.py backfill chunker for migrating legacy work logs
+vault/             the card vault (ships with 4 demo cards, lint-clean)
+  卡片(cards)/  MOC/  登记(registry)/  _inbox/  _索引(index)/  _模板(templates)/  _回收站(recycle)/
+  HOME.md  _热核(hot core).md  _待办(todo).md  _检索失败日志(miss log).md
+docs/en/  docs/zh/   four design docs, bilingual
+  architecture.md        dual-body brain / entry pyramid / five auto-loops / three rings
+  card-spec.md           card spec: frontmatter / 14 card types / 10 edge types / activity axis
+  retrieval-protocol.md  ≤8-read budget / question-type routing / V-jump / miss escalation
+  hooks-setup.md         Claude Code integration: hooks + optional Ollama + known pitfalls
+hooks/             settings.example.json (merge-ready hook snippets)
 ```
 
-## 设计渊源
+## Design lineage
 
-这套架构不是凭空发明的，它综合了：**A-MEM**（卡=内容+关键词+语境+链接集，记忆进化）、**Zep/GraphRAG**（时间图与层级社区摘要）、**LYT/MOC** 与 **Evergreen notes**（人类 PKM 的成熟实践）、Discourse Graph（问题卡）——再加上在真实科研工作流里数百次会话的实战打磨。各设计点在文档中以 D-xx 决策编号引用，保持了可追溯性。
+None of this is invented from thin air. It synthesizes **A-MEM** (card = content + keywords + context + link set, evolving memory), **Zep / GraphRAG** (temporal graphs and hierarchical community summaries), **LYT / MOC** and **Evergreen notes** (mature human PKM practice), and Discourse Graphs (question cards) — hardened by hundreds of real research-workflow sessions. Design decisions are referenced as D-xx numbers throughout the docs for traceability.
 
 ## FAQ
 
-- **必须用 Claude Code 吗？** 不。钩子层是 Claude Code 专用的，但 vault+引擎是纯文件系统操作，任何能读文件的 agent（或人）都能用；Obsidian 可直接打开 vault 获得图谱视图。
-- **中文写的，英文项目能用吗？** 卡片内容语言不限；卡型/边型关键字目前是中文枚举（`概念-`/`支持::`），fork 后改 `vault_lint.py` 顶部的枚举表即可本地化。
-- **和 RAG 什么关系？** 互补。RAG 是"检索原文片段"，这里管理的是**判断层**——结论、决策、教训及其关联；向量检索只是本系统的兜底路，不是主干。
+- **Do I need Claude Code?** No. The hook layer is Claude Code-specific, but the vault + engine are plain file operations — any agent (or human) that can read files can use it; Obsidian opens the vault directly and gives you the graph view.
+- **The card keywords are Chinese — can I use this in an English project?** Card *content* can be in any language. Card-type and edge-type keywords are currently Chinese enums (`概念-`/`支持::`); to localize, fork and edit the enum tables at the top of `vault_lint.py`. An English keyword set is on the v2 roadmap.
+- **How does this relate to RAG?** Complementary. RAG retrieves source-text fragments; this system manages the **judgment layer** — conclusions, decisions, lessons, and their reasoned associations. Vector search is only the fallback path here, not the backbone.
 
 ## License
 
-MIT。卡片内容归你——这套系统的立场是：**判断必须由人（或你的 agent）做，框架只负责让判断不被遗忘。**
+MIT. Your cards belong to you — the stance of this framework: **judgment must be made by a human (or your agent); the framework's only job is to make sure judgment is never forgotten.**
